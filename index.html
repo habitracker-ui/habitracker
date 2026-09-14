@@ -27,6 +27,19 @@
           }
         } catch (e) {}
       })();
+       
+      // Capturador de errores globales para diagnosticar pantalla blanca en móviles
+      window.addEventListener('error', function(event) {
+        var errDiv = document.getElementById('global-error');
+        if (!errDiv) {
+          errDiv = document.createElement('div');
+          errDiv.id = 'global-error';
+          errDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:#0F172A;color:#E2E8F0;z-index:9999;padding:20px;font-family:sans-serif;overflow:auto;word-wrap:break-word;';
+          document.body.appendChild(errDiv);
+        }
+        errDiv.innerHTML += '<p style="color:#F87171;font-weight:bold;margin-bottom:8px;">Error: ' + event.message + '</p>' +
+                            '<p style="font-size:12px;opacity:0.8;">Archivo: ' + event.filename + ':' + event.lineno + '</p><hr style="border-color:#2D3F5C;margin:12px 0;">';
+      });
     </script>
   </head>
   <body>
