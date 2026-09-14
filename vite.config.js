@@ -6,6 +6,9 @@ const REPO_NAME = 'habitracker'
 
 export default defineConfig({
   base: `/${REPO_NAME}/`,
+  build: {
+    target: 'es2015'
+  },
   plugins: [
     react(),
     VitePWA({

@@ -4,8 +4,10 @@ const ThemeContext = createContext(null)
 
 export function ThemeProvider({ children }) {
   const [dark, setDark] = useState(() => {
-    const saved = localStorage.getItem('habit-theme')
-    if (saved) return saved === 'dark'
+    try {
+      const saved = localStorage.getItem('habit-theme')
+      if (saved) return saved === 'dark'
+    } catch (e) {}
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
 
@@ -16,7 +18,9 @@ export function ThemeProvider({ children }) {
     } else {
       root.classList.remove('dark')
     }
-    localStorage.setItem('habit-theme', dark ? 'dark' : 'light')
+    try {
+      localStorage.setItem('habit-theme', dark ? 'dark' : 'light')
+    } catch (e) {}
   }, [dark])
 
   return (
