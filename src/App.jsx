@@ -45,11 +45,11 @@ function AppContent() {
 
   const handleXP = useCallback((amount) => {
     setXP(prev => {
-      const next = prev + amount
+      const next = Math.max(0, prev + amount)
       localStorage.setItem('habit-xp', String(next))
       return next
     })
-    setXpFlash(`+${amount} XP`)
+    setXpFlash(amount > 0 ? `+${amount} XP` : `${amount} XP`)
     setTimeout(() => setXpFlash(null), 1800)
   }, [])
 
@@ -63,8 +63,10 @@ function AppContent() {
       {/* XP toast */}
       {xpFlash && (
         <div className="fixed top-16 right-4 z-50 pointer-events-none">
-          <div className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold shadow-primary animate-xp-rise">
-            {xpFlash} 🎉
+          <div className={`px-4 py-2 rounded-xl text-white text-sm font-bold shadow-lg animate-xp-rise ${
+            xpFlash.startsWith('+') ? 'bg-primary shadow-primary' : 'bg-slate-600'
+          }`}>
+            {xpFlash} {xpFlash.startsWith('+') ? '🎉' : '↩'}
           </div>
         </div>
       )}
@@ -91,7 +93,7 @@ function AppContent() {
         <FrequencyTabs active={filterFreq} onChange={setFilterFreq} />
 
         {/* List */}
-        <main className="space-y-0 pt-1">
+        <main className="flex flex-col gap-3.5 pt-1">
           {loaded && filtered.length === 0 && (
             <div className="bg-white dark:bg-dark-surface rounded-2xl border border-app-border dark:border-dark-border py-16 text-center">
               <p className="text-3xl mb-3">🌱</p>

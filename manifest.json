@@ -1,0 +1,36 @@
+{
+    "background_color": "#ffffff",
+    "description": "Registra y da seguimiento a tus hábitos diarios, semanales y mensuales. Todo guardado en tu dispositivo, sin cuentas ni servidores.",
+    "dir": "ltr",
+    "display": "minimal-ui",
+    "name": "habitracker",
+    "orientation": "natural",
+    "scope": "https://habitracker-ui.github.io/habitracker/",
+    "short_name": "habitracker",
+    "start_url": "https://habitracker-ui.github.io/habitracker/",
+    "theme_color": "#23302B",
+    "icons": [
+        {
+            "src": "https://habitracker-ui.github.io/favicon.svg",
+            "type": "image/svg+xml",
+            "isSquare": false,
+            "isPng": false,
+            "isWebp": false,
+            "isJpg": false,
+            "width": 0,
+            "is512x512": false,
+            "is256x256": false,
+            "is192x192": false
+        }
+    ],
+    "id": "htracker",
+    "lang": "en",
+    "display_override": [
+        "browser",
+        "minimal-ui",
+        "window-controls-overlay"
+    ],
+    "categories": [
+        "lifestyle"
+    ]
+}
