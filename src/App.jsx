@@ -5,23 +5,24 @@ import HabitCard from './components/HabitCard'
 import AddHabitForm from './components/AddHabitForm'
 import FrequencyTabs from './components/FrequencyTabs'
 import StatsHeader from './components/StatsHeader'
-import ImportExport from './components/ImportExport'
+import WeekStrip from './components/WeekStrip'
+import TopNav from './components/TopNav'
 import { ThemeProvider } from './ThemeProvider'
 
 function todayLabel() {
-  const formatted = new Intl.DateTimeFormat('es-MX', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  }).format(new Date())
-  return formatted.charAt(0).toUpperCase() + formatted.slice(1)
+  const d = new Date()
+  const weekday = d.toLocaleDateString('es-MX', { weekday: 'long' })
+  const day     = d.getDate()
+  const month   = d.toLocaleDateString('es-MX', { month: 'long' })
+  const result  = `${weekday} ${day} de ${month}`
+  return result.charAt(0).toUpperCase() + result.slice(1)
 }
 
 function AppContent() {
   const [filterFreq, setFilterFreq] = useState('all')
-  const [xp, setXP] = useState(() => Number(localStorage.getItem('habit-xp') ?? 0))
-  const [xpFlash, setXpFlash] = useState(null)
+  const [showAdd,    setShowAdd]    = useState(false)
+  const [xp,         setXP]        = useState(() => Number(localStorage.getItem('habit-xp') ?? 0))
+  const [xpFlash,    setXpFlash]   = useState(null)
 
   const habits = useLiveQuery(
     () => db.habits.where('archived').equals(0).toArray(),
@@ -35,13 +36,16 @@ function AppContent() {
     []
   )
 
-  // Calculate best streak across all habits
+  // Best streak across all active habits
   const longestStreak = (() => {
     if (!habits?.length || !allEntries?.length) return 0
-    return Math.max(...habits.map(h => {
-      const e = allEntries.filter(e => e.habitId === h.id)
-      return computeStreak(e, h.frequency ?? 'daily')
-    }), 0)
+    return Math.max(
+      0,
+      ...habits.map(h => {
+        const e = allEntries.filter(e => e.habitId === h.id)
+        return computeStreak(e, h.frequency ?? 'daily')
+      })
+    )
   })()
 
   const filtered = (habits ?? []).filter(
@@ -55,64 +59,78 @@ function AppContent() {
       return next
     })
     setXpFlash(`+${amount} XP`)
-    setTimeout(() => setXpFlash(null), 1500)
+    setTimeout(() => setXpFlash(null), 1800)
   }, [])
 
   const loaded = habits !== undefined
 
   return (
-    <div className="min-h-screen bg-paper dark:bg-dark-bg transition-colors duration-300">
-      <div className="max-w-lg mx-auto px-5 py-8 pb-16">
+    <div className={`min-h-screen transition-colors duration-300 app-bg dark:app-bg`}>
+      {/* Top navigation */}
+      <TopNav onAddHabit={() => setShowAdd(true)} />
 
-        {/* Header */}
-        <header className="mb-6">
-          <p className="text-xs text-clay dark:text-clay font-semibold uppercase tracking-widest mb-1">
+      {/* XP flash toast */}
+      {xpFlash && (
+        <div className="fixed top-20 right-5 z-50 pointer-events-none">
+          <div className="px-4 py-2 rounded-2xl bg-indigo-600 text-white text-sm font-black shadow-xl shadow-indigo-300/40 animate-xp-flash">
+            {xpFlash} 🎉
+          </div>
+        </div>
+      )}
+
+      {/* Main content */}
+      <div className="max-w-lg mx-auto px-5 pb-12 pt-5 space-y-4">
+
+        {/* Date heading */}
+        <div>
+          <p className="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest mb-1">
             {todayLabel()}
           </p>
-          <h1 className="font-serif text-4xl text-ink dark:text-dark-ink mb-6">Hábitos</h1>
-
-          {/* XP flash notification */}
-          {xpFlash && (
-            <div className="fixed top-5 right-5 z-50 px-4 py-2 rounded-xl gradient-moss text-white text-sm font-bold shadow-lg animate-fade-in pointer-events-none">
-              {xpFlash} 🎉
-            </div>
-          )}
-
-          <StatsHeader totalXP={xp} longestStreak={longestStreak} />
-        </header>
-
-        {/* Tabs */}
-        <div className="mb-4">
-          <FrequencyTabs active={filterFreq} onChange={setFilterFreq} />
+          <h1 className="font-black text-3xl text-slate-900 dark:text-white leading-tight">
+            Buenos días 👋
+          </h1>
         </div>
+
+        {/* Week strip */}
+        <WeekStrip />
+
+        {/* Gamification card */}
+        <StatsHeader totalXP={xp} longestStreak={longestStreak} />
+
+        {/* Frequency tabs */}
+        <FrequencyTabs active={filterFreq} onChange={setFilterFreq} />
 
         {/* Habit list */}
         <main>
           {loaded && filtered.length === 0 && (
-            <div className="text-center py-14">
-              <p className="text-4xl mb-3">🌱</p>
-              <p className="text-ink/40 dark:text-dark-muted text-sm">
+            <div className="glass dark:glass-dark rounded-3xl py-16 px-6 text-center shadow-sm">
+              <p className="text-5xl mb-4">🌱</p>
+              <p className="font-bold text-slate-600 dark:text-slate-300 text-base mb-1">
                 {filterFreq === 'all'
-                  ? 'Todavía no tienes hábitos. Agrega el primero abajo.'
-                  : `No tienes hábitos ${filterFreq === 'daily' ? 'diarios' : filterFreq === 'weekly' ? 'semanales' : 'mensuales'} aún.`
-                }
+                  ? 'Sin hábitos todavía'
+                  : `No tienes hábitos ${filterFreq === 'daily' ? 'diarios' : filterFreq === 'weekly' ? 'semanales' : 'mensuales'}`}
+              </p>
+              <p className="text-sm text-slate-400 dark:text-slate-500">
+                Toca el botón <strong className="text-indigo-500">+</strong> para agregar el primero.
               </p>
             </div>
           )}
 
-          {filtered.map((habit) => (
+          {filtered.map(habit => (
             <HabitCard key={habit.id} habit={habit} onXP={handleXP} />
           ))}
-
-          <AddHabitForm />
         </main>
 
         {/* Footer */}
-        <footer className="mt-10 flex items-center justify-between text-xs text-ink/35 dark:text-dark-muted">
-          <span>Datos solo en este dispositivo 🔒</span>
-          <ImportExport onImported={() => window.location.reload()} />
+        <footer className="text-center space-y-1 pt-2">
+          <p className="text-xs text-slate-400 dark:text-slate-500">
+            🔒 Datos guardados solo en este dispositivo
+          </p>
         </footer>
       </div>
+
+      {/* Add habit bottom sheet */}
+      <AddHabitForm open={showAdd} onClose={() => setShowAdd(false)} />
     </div>
   )
 }

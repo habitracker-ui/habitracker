@@ -4,57 +4,66 @@
 
 @layer base {
   html {
-    background-color: #F7F3EC;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    background-color: #EEF2FF;
+    -webkit-tap-highlight-color: transparent;
   }
   html.dark {
-    background-color: #0F1512;
+    background-color: #0F172A;
   }
   body {
-    @apply text-ink font-sans antialiased;
+    @apply font-sans antialiased text-slate-800 dark:text-slate-100;
   }
-  .dark body {
-    @apply text-dark-ink;
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   ::selection {
-    background-color: #C9A66B;
-    color: #23302B;
+    background-color: #6366f1;
+    color: #ffffff;
   }
   :focus-visible {
-    outline: 2px solid #5B7B5A;
+    outline: 2px solid #6366f1;
     outline-offset: 2px;
   }
 }
 
 @layer utilities {
-  .gradient-moss {
-    background: linear-gradient(135deg, #5B7B5A 0%, #3a5c3a 100%);
+  /* ─── App gradient background ─────────────────────────── */
+  .app-bg {
+    background: linear-gradient(150deg, #EEF2FF 0%, #F5F3FF 45%, #E0E7FF 100%);
+    min-height: 100vh;
   }
-  .gradient-clay {
-    background: linear-gradient(135deg, #C4633F 0%, #a04a28 100%);
+  .dark .app-bg,
+  html.dark .app-bg {
+    background: linear-gradient(150deg, #0F172A 0%, #1E1B4B 50%, #0F172A 100%);
   }
-  .gradient-gold {
-    background: linear-gradient(135deg, #C9A66B 0%, #b08840 100%);
-  }
-  .gradient-header-light {
-    background: linear-gradient(160deg, #e8f0e8 0%, #F7F3EC 60%);
-  }
-  .gradient-header-dark {
-    background: linear-gradient(160deg, #1a2d24 0%, #0F1512 60%);
-  }
-  .glass-light {
-    background: rgba(255,255,255,0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+
+  /* ─── Glass card ──────────────────────────────────────── */
+  .glass {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.6);
   }
   .glass-dark {
-    background: rgba(26,36,32,0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(30, 41, 59, 0.80);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(51,65,85,0.5);
   }
-  /* Scrollbar styles */
-  ::-webkit-scrollbar { width: 6px; }
+
+  /* ─── Habit card gradient backgrounds ────────────────── */
+  .habit-moss   { background: linear-gradient(135deg, #34d399 0%, #0d9488 100%); }
+  .habit-clay   { background: linear-gradient(135deg, #fb923c 0%, #f43f5e 100%); }
+  .habit-gold   { background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%); }
+  .habit-blue   { background: linear-gradient(135deg, #60a5fa 0%, #4f46e5 100%); }
+  .habit-violet { background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%); }
+  .habit-pink   { background: linear-gradient(135deg, #f472b6 0%, #db2777 100%); }
+  .habit-teal   { background: linear-gradient(135deg, #2dd4bf 0%, #0891b2 100%); }
+
+  /* ─── Scrollbar ───────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #DED6C4; border-radius: 3px; }
-  .dark ::-webkit-scrollbar-thumb { background: #2A3C35; }
+  ::-webkit-scrollbar-thumb { background: #C7D2FE; border-radius: 2px; }
+  html.dark ::-webkit-scrollbar-thumb { background: #334155; }
 }

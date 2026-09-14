@@ -1,10 +1,9 @@
 import { getLevelInfo } from '../db'
-import { useTheme } from '../ThemeProvider'
 
-const LEVEL_COLORS = [
-  'from-gray-400 to-gray-500',
-  'from-emerald-400 to-green-600',
-  'from-blue-400 to-blue-600',
+const LEVEL_GRADIENTS = [
+  'from-slate-400 to-slate-600',
+  'from-emerald-400 to-teal-600',
+  'from-blue-400 to-indigo-600',
   'from-violet-400 to-purple-600',
   'from-amber-400 to-orange-500',
   'from-rose-400 to-red-600',
@@ -12,63 +11,51 @@ const LEVEL_COLORS = [
 ]
 
 export default function StatsHeader({ totalXP = 0, longestStreak = 0 }) {
-  const { dark, toggle } = useTheme()
   const lvl = getLevelInfo(totalXP)
-  const colorClass = LEVEL_COLORS[(lvl.level - 1) % LEVEL_COLORS.length]
+  const gradClass = LEVEL_GRADIENTS[(lvl.level - 1) % LEVEL_GRADIENTS.length]
 
   return (
-    <div className="mb-8 space-y-4">
-      {/* Level card */}
-      <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-moss/20 to-moss/5 dark:from-moss/30 dark:to-dark-card border border-moss/20 dark:border-moss/30">
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-xl text-white text-sm font-bold bg-gradient-to-br ${colorClass} shadow-lg`}>
-                {lvl.level}
-              </span>
-              <span className="text-xs font-semibold text-moss dark:text-moss uppercase tracking-wider">
-                Nivel {lvl.level} — {lvl.name}
-              </span>
-            </div>
-            <p className="text-2xl font-bold text-ink dark:text-dark-ink">
-              {totalXP} <span className="text-sm font-medium text-ink/50 dark:text-dark-muted">XP</span>
-            </p>
-          </div>
+    <div className="glass dark:glass-dark rounded-3xl p-4 shadow-sm">
+      <div className="flex items-center gap-4">
 
-          <div className="flex items-center gap-3">
-            {/* Racha global */}
-            <div className="text-right">
-              <p className="text-xs text-ink/50 dark:text-dark-muted">Mejor racha</p>
-              <p className="text-xl font-bold text-clay dark:text-clay flex items-center gap-1 justify-end">
-                {longestStreak > 0 ? '🔥' : '💤'} {longestStreak}
-              </p>
-            </div>
-
-            {/* Dark mode toggle */}
-            <button
-              id="toggle-dark-mode"
-              onClick={toggle}
-              aria-label={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-              className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/60 dark:bg-dark-border/60 text-ink/60 dark:text-dark-muted hover:text-ink dark:hover:text-dark-ink transition-all hover:scale-110 active:scale-95"
-            >
-              {dark ? '☀️' : '🌙'}
-            </button>
-          </div>
+        {/* Level badge */}
+        <div className={`relative w-14 h-14 rounded-2xl flex flex-col items-center justify-center bg-gradient-to-br ${gradClass} shadow-lg flex-shrink-0`}>
+          <span className="text-white/70 text-[9px] font-bold uppercase tracking-wider">Niv.</span>
+          <span className="text-white text-xl font-black leading-none">{lvl.level}</span>
         </div>
 
-        {/* XP progress bar */}
-        <div className="mt-4">
-          <div className="flex justify-between text-[10px] text-ink/40 dark:text-dark-muted mb-1.5">
-            <span>{lvl.xpMin} XP</span>
-            {lvl.nextXP !== Infinity && <span>Siguiente: {lvl.nextXP} XP</span>}
+        {/* XP + progress */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{lvl.name}</span>
+            <span className="text-xs font-black text-indigo-600 dark:text-indigo-400">{totalXP} XP</span>
           </div>
-          <div className="h-2 rounded-full bg-line dark:bg-dark-border overflow-hidden">
+
+          {/* XP bar */}
+          <div className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-700/60 overflow-hidden">
             <div
-              className={`h-full rounded-full bg-gradient-to-r ${colorClass} transition-all duration-700 ease-out`}
+              className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-700 ease-out"
               style={{ width: `${lvl.progress}%` }}
             />
           </div>
+
+          {/* Next level */}
+          {lvl.nextXP !== Infinity && (
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
+              {lvl.nextXP - totalXP} XP para nivel {lvl.level + 1}
+            </p>
+          )}
         </div>
+
+        {/* Best streak */}
+        <div className="text-center flex-shrink-0">
+          <div className="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800/40 flex flex-col items-center justify-center">
+            <span className="text-lg leading-none">{longestStreak >= 3 ? '🔥' : '⚡'}</span>
+            <span className="text-xs font-black text-slate-700 dark:text-slate-200 leading-none mt-0.5">{longestStreak}</span>
+          </div>
+          <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-1">racha</p>
+        </div>
+
       </div>
     </div>
   )

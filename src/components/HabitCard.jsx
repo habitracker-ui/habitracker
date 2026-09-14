@@ -12,12 +12,21 @@ import {
 
 const DAY_LABELS = ['D', 'L', 'M', 'M', 'J', 'V', 'S']
 
-const COLOR_MAP = {
-  moss:   { done: 'bg-moss border-moss', ring: 'ring-moss/50', text: 'text-moss' },
-  clay:   { done: 'bg-clay border-clay', ring: 'ring-clay/50', text: 'text-clay' },
-  gold:   { done: 'bg-gold border-gold', ring: 'ring-gold/50', text: 'text-gold' },
-  blue:   { done: 'bg-blue-500 border-blue-500', ring: 'ring-blue-500/50', text: 'text-blue-500' },
-  violet: { done: 'bg-violet-500 border-violet-500', ring: 'ring-violet-500/50', text: 'text-violet-500' },
+// Full class strings so Tailwind JIT picks them up
+const GRADIENT_MAP = {
+  moss:   'habit-moss',
+  clay:   'habit-clay',
+  gold:   'habit-gold',
+  blue:   'habit-blue',
+  violet: 'habit-violet',
+  pink:   'habit-pink',
+  teal:   'habit-teal',
+}
+
+const FREQ_BADGE = {
+  daily:   '📅 Diario',
+  weekly:  '📆 Semanal',
+  monthly: '🗓️ Mensual',
 }
 
 function getPeriodKeys(frequency) {
@@ -29,8 +38,7 @@ function getPeriodKeys(frequency) {
 function getPeriodLabel(frequency, key) {
   if (frequency === 'weekly')  return weekLabel(key)
   if (frequency === 'monthly') return monthLabel(key)
-  const dayIdx = new Date(key + 'T00:00:00').getDay()
-  return DAY_LABELS[dayIdx]
+  return DAY_LABELS[new Date(key + 'T00:00:00').getDay()]
 }
 
 function getCurrentPeriod(frequency) {
@@ -39,14 +47,8 @@ function getCurrentPeriod(frequency) {
   return todayKey()
 }
 
-function frequencyBadge(frequency) {
-  if (frequency === 'weekly')  return { label: 'Semanal',  cls: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' }
-  if (frequency === 'monthly') return { label: 'Mensual',  cls: 'bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400' }
-  return { label: 'Diario', cls: 'bg-moss/10 text-moss dark:bg-moss/20' }
-}
-
 export default function HabitCard({ habit, onXP }) {
-  const [justDone, setJustDone] = useState(null)
+  const [popping, setPopping] = useState(null)
 
   const entries = useLiveQuery(
     () => db.entries.where('habitId').equals(habit.id).toArray(),
@@ -54,117 +56,126 @@ export default function HabitCard({ habit, onXP }) {
     []
   )
 
-  const frequency  = habit.frequency ?? 'daily'
-  const color      = habit.color ?? 'moss'
-  const colors     = COLOR_MAP[color] ?? COLOR_MAP.moss
+  const frequency  = habit.frequency  ?? 'daily'
+  const color      = habit.color      ?? 'moss'
+  const gradClass  = GRADIENT_MAP[color] ?? GRADIENT_MAP.moss
   const periodKeys = getPeriodKeys(frequency)
   const current    = getCurrentPeriod(frequency)
   const entryMap   = Object.fromEntries((entries ?? []).map(e => [e.date, e]))
   const streak     = computeStreak(entries ?? [], frequency)
-  const badge      = frequencyBadge(frequency)
 
-  // Completion % of visible periods
-  const doneCount  = periodKeys.filter(k => entryMap[k]?.done).length
-  const pct        = Math.round((doneCount / periodKeys.length) * 100)
+  // Completion count for visible periods
+  const doneCount = periodKeys.filter(k => entryMap[k]?.done).length
+  const pct       = Math.round((doneCount / periodKeys.length) * 100)
 
-  async function handleToggle(periodKey) {
-    const wasDone = !!entryMap[periodKey]?.done
-    await toggleEntry(habit.id, periodKey)
-
-    if (!wasDone && periodKey === current) {
-      setJustDone(periodKey)
-      setTimeout(() => setJustDone(null), 600)
-      const newStreak = streak + 1
-      const xpGained = XP_PER_COMPLETION + xpForStreak(newStreak)
-      onXP?.(xpGained)
+  async function handleToggle(key) {
+    const wasDone = !!entryMap[key]?.done
+    await toggleEntry(habit.id, key)
+    if (!wasDone) {
+      setPopping(key)
+      setTimeout(() => setPopping(null), 400)
+      if (key === current) {
+        onXP?.(XP_PER_COMPLETION + xpForStreak(streak + 1))
+      }
     }
   }
 
   async function handleArchive() {
-    if (confirm(`¿Archivar "${habit.name}"? El historial se conservará.`)) {
+    if (confirm(`¿Archivar "${habit.name}"?\nEl historial se conservará.`)) {
       await archiveHabit(habit.id)
     }
   }
 
   return (
-    <div className="group animate-fade-in rounded-2xl border border-line dark:border-dark-border bg-white/70 dark:bg-dark-card/80 backdrop-blur-sm p-4 mb-3 hover:shadow-md dark:hover:shadow-dark-border/20 hover:border-line dark:hover:border-dark-border transition-all duration-200">
-      {/* Header row */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-2.5">
-          <span className="text-2xl leading-none">{habit.emoji ?? '✅'}</span>
+    <div className={`group relative rounded-3xl p-5 mb-3 animate-fade-in shadow-lg overflow-hidden ${gradClass}`}>
+
+      {/* ── Decorative blobs for depth ──────────────────── */}
+      <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
+      <div className="absolute -bottom-8 -left-4 w-24 h-24 rounded-full bg-black/10 pointer-events-none" />
+
+      {/* ── Header ──────────────────────────────────────── */}
+      <div className="relative flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          {/* Emoji bubble */}
+          <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-xl shadow-inner flex-shrink-0">
+            {habit.emoji ?? '✅'}
+          </div>
           <div>
-            <p className="font-serif text-base text-ink dark:text-dark-ink leading-tight">{habit.name}</p>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${badge.cls}`}>
-                {badge.label}
-              </span>
-              {streak > 0 && (
-                <span className={`text-[10px] font-medium ${colors.text} flex items-center gap-0.5`}>
-                  {streak >= 3 ? '🔥' : '⚡'} {streak} {frequency === 'daily' ? 'd' : frequency === 'weekly' ? 'sem' : 'mes'}
-                </span>
-              )}
-            </div>
+            <h3 className="text-white font-bold text-base leading-tight">
+              {habit.name}
+            </h3>
+            <span className="text-white/70 text-[10px] font-semibold">
+              {FREQ_BADGE[frequency] ?? FREQ_BADGE.daily}
+            </span>
           </div>
         </div>
 
-        {/* Archive button (visible on hover) */}
-        <button
-          onClick={handleArchive}
-          aria-label={`Archivar ${habit.name}`}
-          className="opacity-0 group-hover:opacity-100 transition-opacity text-ink/25 dark:text-dark-muted hover:text-clay dark:hover:text-clay text-xs px-2 py-1 rounded-lg hover:bg-clay/10"
-        >
-          Archivar
-        </button>
+        {/* Streak badge + archive */}
+        <div className="flex items-center gap-2">
+          {streak > 0 && (
+            <div className="flex items-center gap-1 bg-white/20 rounded-full px-2.5 py-1">
+              <span className="text-sm">{streak >= 3 ? '🔥' : '⚡'}</span>
+              <span className="text-white font-black text-xs">{streak}</span>
+            </div>
+          )}
+          <button
+            onClick={handleArchive}
+            aria-label={`Archivar ${habit.name}`}
+            className="opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-xl bg-black/20 text-white/70 hover:text-white hover:bg-black/30 transition-all text-xs"
+          >
+            ✕
+          </button>
+        </div>
       </div>
 
-      {/* Period circles */}
-      <div className="flex items-end gap-1.5 justify-between">
+      {/* ── Period circles ───────────────────────────────── */}
+      <div className="relative flex items-end justify-between gap-1 mb-4">
         {periodKeys.map((key) => {
-          const done    = !!entryMap[key]?.done
+          const done      = !!entryMap[key]?.done
           const isCurrent = key === current
-          const isPopping = justDone === key
+          const isPopping = popping === key
 
           return (
-            <div key={key} className="flex flex-col items-center gap-1 flex-1">
-              <span className="text-[9px] text-ink/35 dark:text-dark-muted font-medium">
+            <div key={key} className="flex flex-col items-center gap-1.5 flex-1">
+              <span className="text-[9px] text-white/60 font-semibold">
                 {getPeriodLabel(frequency, key)}
               </span>
               <button
                 onClick={() => handleToggle(key)}
-                aria-label={`${habit.name} — ${key}${done ? ', completado' : ''}`}
+                aria-label={`${habit.name} — ${key}`}
                 aria-pressed={done}
                 className={[
-                  'w-full aspect-square max-w-[32px] rounded-full border-2 transition-all duration-200',
+                  'w-full aspect-square max-w-[34px] rounded-full transition-all duration-200',
                   'hover:scale-110 active:scale-90',
                   done
-                    ? `${colors.done} shadow-sm ${isPopping ? 'animate-pop' : ''}`
-                    : `bg-transparent border-line dark:border-dark-border hover:border-current ${colors.text}`,
-                  isCurrent && !done
-                    ? `ring-2 ring-offset-1 ring-offset-white dark:ring-offset-dark-card ${colors.ring}`
-                    : ''
+                    ? `bg-white shadow-md ${isPopping ? 'animate-pop' : ''}`
+                    : 'bg-white/25 hover:bg-white/40',
+                  isCurrent && !done ? 'ring-2 ring-white/60 ring-offset-1 ring-offset-transparent' : ''
                 ].join(' ')}
-              />
+              >
+                {done && (
+                  <svg className="w-3 h-3 mx-auto" viewBox="0 0 12 10" fill="none">
+                    <path d="M1 5L4.5 8.5L11 1" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </button>
             </div>
           )
         })}
       </div>
 
-      {/* Progress bar */}
-      <div className="mt-3 h-1 rounded-full bg-line dark:bg-dark-border overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all duration-500 ${
-            color === 'moss'   ? 'bg-moss'   :
-            color === 'clay'   ? 'bg-clay'   :
-            color === 'gold'   ? 'bg-gold'   :
-            color === 'blue'   ? 'bg-blue-500' :
-            'bg-violet-500'
-          }`}
-          style={{ width: `${pct}%` }}
-        />
+      {/* ── Progress bar ─────────────────────────────────── */}
+      <div className="relative">
+        <div className="h-1.5 rounded-full bg-black/15 overflow-hidden">
+          <div
+            className="h-full bg-white/70 rounded-full transition-all duration-500"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <p className="text-white/60 text-[10px] font-semibold mt-1.5 text-right">
+          {doneCount}/{periodKeys.length} · {pct}%
+        </p>
       </div>
-      <p className="mt-1 text-[10px] text-ink/35 dark:text-dark-muted text-right">
-        {doneCount}/{periodKeys.length} completados
-      </p>
     </div>
   )
 }
