@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    background-color: #F7F3EC;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  html.dark {
+    background-color: #0F1512;
+  }
+  body {
+    @apply text-ink font-sans antialiased;
+  }
+  .dark body {
+    @apply text-dark-ink;
+  }
+  ::selection {
+    background-color: #C9A66B;
+    color: #23302B;
+  }
+  :focus-visible {
+    outline: 2px solid #5B7B5A;
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .gradient-moss {
+    background: linear-gradient(135deg, #5B7B5A 0%, #3a5c3a 100%);
+  }
+  .gradient-clay {
+    background: linear-gradient(135deg, #C4633F 0%, #a04a28 100%);
+  }
+  .gradient-gold {
+    background: linear-gradient(135deg, #C9A66B 0%, #b08840 100%);
+  }
+  .gradient-header-light {
+    background: linear-gradient(160deg, #e8f0e8 0%, #F7F3EC 60%);
+  }
+  .gradient-header-dark {
+    background: linear-gradient(160deg, #1a2d24 0%, #0F1512 60%);
+  }
+  .glass-light {
+    background: rgba(255,255,255,0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .glass-dark {
+    background: rgba(26,36,32,0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  /* Scrollbar styles */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #DED6C4; border-radius: 3px; }
+  .dark ::-webkit-scrollbar-thumb { background: #2A3C35; }
+}
