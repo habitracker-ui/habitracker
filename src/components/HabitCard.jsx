@@ -36,8 +36,8 @@ const FREQ_LABEL = {
 function getPeriodKeys(frequency) {
   if (frequency === 'weekly')  return lastNWeeks(8)
   if (frequency === 'monthly') return lastNMonths(6)
-  // Daily: siempre la semana ISO actual → se "reinicia" cada lunes
-  return currentWeekDays()
+  // Daily: usa los días de la semana actual, pero normaliza a UTC (same format que todayKey())
+  return currentWeekDays().map(d => d.dateKey)
 }
 
 function getPeriodLabel(frequency, key, idx) {
