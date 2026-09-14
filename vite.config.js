@@ -2,9 +2,6 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// IMPORTANTE: cambia 'habit-tracker' por el nombre exacto de tu repositorio
-// de GitHub si es diferente. Esto es necesario para que las rutas
-// funcionen correctamente en GitHub Pages (que sirve desde /repo-name/).
 const REPO_NAME = 'habitracker'
 
 export default defineConfig({

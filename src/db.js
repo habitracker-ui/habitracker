@@ -243,7 +243,7 @@ export const LEVELS = [
 ]
 
 export function getLevelInfo(totalXP) {
-  const lvl = LEVELS.findLast(l => totalXP >= l.xpMin) ?? LEVELS[0]
+  const lvl = [...LEVELS].reverse().find(l => totalXP >= l.xpMin) ?? LEVELS[0]
   const next = LEVELS.find(l => l.level === lvl.level + 1)
   const progress = next
     ? ((totalXP - lvl.xpMin) / (lvl.xpMax - lvl.xpMin)) * 100
