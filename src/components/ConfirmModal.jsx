@@ -1,4 +1,4 @@
-import { AlertTriangle, Trash2, Archive, X } from 'lucide-react'
+import { Trash2, Archive, X } from 'lucide-react'
 import { HabitIcon } from '../icons'
 
 const CARD_GRADIENT = {
@@ -19,12 +19,15 @@ export default function ConfirmModal({
   description = 'Esta acción no se puede deshacer.',
   confirmText = 'Confirmar',
   cancelText = 'Cancelar',
-  variant = 'danger', // 'danger' | 'warning'
+  variant = 'danger',
   habit = null
 }) {
   if (!open) return null
 
-  const gradClass = habit?.color ? CARD_GRADIENT[habit.color] ?? 'habit-violet' : null
+  const colorKey = habit?.color ?? 'violet'
+  const gradClass = CARD_GRADIENT[colorKey] ?? CARD_GRADIENT.violet
+  const habitIconKey = habit?.icon ?? 'check'
+  const habitName = habit?.name ?? ''
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -50,7 +53,7 @@ export default function ConfirmModal({
         <div className="flex flex-col items-center text-center">
           {habit ? (
             <div className={`w-14 h-14 rounded-2xl ${gradClass} flex items-center justify-center shadow-lg mb-4 ring-4 ring-surface dark:ring-dark-card`}>
-              <HabitIcon iconKey={habit.icon ?? 'check'} size={26} className="text-white" />
+              <HabitIcon iconKey={habitIconKey} size={26} className="text-white" />
             </div>
           ) : (
             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg mb-4 ${
@@ -66,9 +69,9 @@ export default function ConfirmModal({
             {title}
           </h3>
 
-          {habit && (
+          {habitName && (
             <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-surface dark:bg-dark-card text-subtle dark:text-dark-muted mb-2">
-              {habit.name}
+              {habitName}
             </span>
           )}
 

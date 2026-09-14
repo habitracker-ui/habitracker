@@ -43,7 +43,7 @@ function getPeriodKeys(frequency) {
 function getPeriodLabel(frequency, key, idx) {
   if (frequency === 'weekly')  return weekLabel(key)
   if (frequency === 'monthly') return monthLabel(key)
-  return DAY_SHORT[idx]          // L M X J V S D
+  return DAY_SHORT[idx] ?? ''   // L M X J V S D
 }
 
 function getCurrentPeriod(frequency) {
@@ -57,21 +57,33 @@ export default function HabitCard({ habit, onXP }) {
   const [showArchiveModal, setShowArchiveModal] = useState(false)
 
   const entries = useLiveQuery(
-    () => db.entries.where('habitId').equals(habit.id).toArray(),
-    [habit.id],
+    () => db.entries.where('habitId').equals(habit?.id).toArray(),
+    [habit?.id],
     []
   )
+
+  if (!habit) return null
 
   const frequency  = habit.frequency  ?? 'daily'
   const color      = habit.color      ?? 'violet'
   const gradClass  = CARD_GRADIENT[color] ?? CARD_GRADIENT.violet
   const periodKeys = getPeriodKeys(frequency)
   const current    = getCurrentPeriod(frequency)
-  const entryMap   = Object.fromEntries((entries ?? []).map(e => [e.date, e]))
-  const streak     = computeStreak(entries ?? [], frequency)
 
+  // Construcción segura del mapa para máxima compatibilidad móvil
+  const entryMap = {}
+  if (Array.isArray(entries)) {
+    for (let i = 0; i < entries.length; i++) {
+      const e = entries[i]
+      if (e && e.date) {
+        entryMap[e.date] = e
+      }
+    }
+  }
+
+  const streak = computeStreak(entries ?? [], frequency)
   const doneCount = periodKeys.filter(k => entryMap[k]?.done).length
-  const pct       = Math.round((doneCount / periodKeys.length) * 100)
+  const pct = periodKeys.length ? Math.round((doneCount / periodKeys.length) * 100) : 0
 
   async function handleToggle(key) {
     if (key !== current) return
@@ -100,18 +112,18 @@ export default function HabitCard({ habit, onXP }) {
 
         {/* ── Top row: icon + name + streak + archive ──────── */}
         <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
             {/* Icon bubble */}
             <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
               <HabitIcon iconKey={habit.icon ?? 'check'} size={18} className="text-white" />
             </div>
-            <div>
-              <p className="text-white font-bold text-[15px] leading-tight">{habit.name}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-white font-bold text-[15px] leading-tight truncate">{habit.name}</p>
               <p className="text-white/60 text-[11px] font-medium mt-0.5">{FREQ_LABEL[frequency]}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             {/* Streak badge */}
             {streak > 0 && (
               <div className="flex items-center gap-1 bg-white/20 rounded-full px-2 py-0.5">
@@ -119,11 +131,11 @@ export default function HabitCard({ habit, onXP }) {
                 <span className="text-white font-bold text-[11px]">{streak}</span>
               </div>
             )}
-            {/* Archive (hover) */}
+            {/* Archive button (accesible en táctil y hover) */}
             <button
               onClick={() => setShowArchiveModal(true)}
               aria-label={`Archivar ${habit.name}`}
-              className="opacity-0 group-hover:opacity-100 w-6 h-6 flex items-center justify-center rounded-lg bg-black/20 text-white/70 hover:text-white hover:bg-black/35 transition-all"
+              className="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 w-6 h-6 flex items-center justify-center rounded-lg bg-black/20 text-white hover:text-white hover:bg-black/35 transition-all"
             >
               <X size={11} />
             </button>
@@ -138,8 +150,8 @@ export default function HabitCard({ habit, onXP }) {
             const isPopping = popping === key
 
             return (
-              <div key={key} className="flex flex-col items-center gap-1 flex-1">
-                <span className={`text-[9px] font-semibold leading-none ${isCurrent ? 'text-white font-bold' : 'text-white/40'}`}>
+              <div key={key} className="flex flex-col items-center gap-1 flex-1 min-w-0">
+                <span className={`text-[9px] font-semibold leading-none truncate ${isCurrent ? 'text-white font-bold' : 'text-white/40'}`}>
                   {getPeriodLabel(frequency, key, idx)}
                 </span>
                 <button
@@ -171,7 +183,7 @@ export default function HabitCard({ habit, onXP }) {
           })}
         </div>
 
-        {/* ── Progress bar (bottom accent — like reference) ── */}
+        {/* ── Progress bar ── */}
         <div className="h-1 rounded-full bg-black/20 overflow-hidden">
           <div
             className="h-full bg-white/60 rounded-full transition-all duration-500"
@@ -195,4 +207,3 @@ export default function HabitCard({ habit, onXP }) {
     </>
   )
 }
-

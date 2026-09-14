@@ -18,8 +18,14 @@ function todayHeading() {
 function AppContent() {
   const [filterFreq, setFilterFreq] = useState('all')
   const [showAdd,    setShowAdd]    = useState(false)
-  const [xp,         setXP]        = useState(() => Number(localStorage.getItem('habit-xp') ?? 0))
-  const [xpFlash,    setXpFlash]   = useState(null)
+  const [xp, setXP] = useState(() => {
+    try {
+      return Number(localStorage.getItem('habit-xp') ?? 0)
+    } catch {
+      return 0
+    }
+  })
+  const [xpFlash, setXpFlash] = useState(null)
 
   const habits = useLiveQuery(
     () => db.habits.where('archived').equals(0).toArray(),
@@ -46,7 +52,9 @@ function AppContent() {
   const handleXP = useCallback((amount) => {
     setXP(prev => {
       const next = Math.max(0, prev + amount)
-      localStorage.setItem('habit-xp', String(next))
+      try {
+        localStorage.setItem('habit-xp', String(next))
+      } catch {}
       return next
     })
     setXpFlash(amount > 0 ? `+${amount} XP` : `${amount} XP`)

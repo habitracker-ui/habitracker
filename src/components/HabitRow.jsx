@@ -9,14 +9,24 @@ export default function HabitRow({ habit }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const entries = useLiveQuery(
-    () => db.entries.where('habitId').equals(habit.id).toArray(),
-    [habit.id],
+    () => db.entries.where('habitId').equals(habit?.id).toArray(),
+    [habit?.id],
     []
   )
 
+  if (!habit) return null
+
   const days = lastNDays(7)
   const today = todayKey()
-  const entryByDate = Object.fromEntries((entries ?? []).map((e) => [e.date, e]))
+
+  const entryByDate = {}
+  if (Array.isArray(entries)) {
+    for (let i = 0; i < entries.length; i++) {
+      const e = entries[i]
+      if (e && e.date) entryByDate[e.date] = e
+    }
+  }
+
   const streak = computeStreak(entries ?? [])
 
   async function confirmDelete() {
@@ -63,7 +73,7 @@ export default function HabitRow({ habit }) {
 
         <button
           onClick={() => setShowDeleteModal(true)}
-          className="opacity-0 group-hover:opacity-100 transition-opacity text-ink/30 hover:text-clay text-sm shrink-0"
+          className="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity text-ink/50 hover:text-clay text-sm shrink-0"
           aria-label={`Eliminar ${habit.name}`}
         >
           ✕
@@ -84,4 +94,3 @@ export default function HabitRow({ habit }) {
     </>
   )
 }
-
