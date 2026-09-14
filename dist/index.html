@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/habitracker/favicon.svg" />
+    <link rel="apple-touch-icon" href="/habitracker/apple-touch-icon.png" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#23302B" />
+    <meta name="description" content="Registra y da seguimiento a tus hábitos diarios, semanales y mensuales. Todo guardado en tu dispositivo, sin cuentas ni servidores." />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta property="og:title" content="Hábitos — Tu tracker personal" />
+    <meta property="og:description" content="Sigue tus hábitos diarios, semanales y mensuales con gamificación y modo oscuro." />
+    <title>Hábitos — Tu tracker personal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('habit-theme');
+          if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <script type="module" crossorigin src="/habitracker/assets/index-CCtodBET.js"></script>
+    <link rel="stylesheet" crossorigin href="/habitracker/assets/index-YET7zx_H.css">
+  <link rel="manifest" href="/habitracker/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/habitracker/registerSW.js"></script></head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
