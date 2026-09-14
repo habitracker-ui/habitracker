@@ -1,44 +1,48 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { Flame, X } from 'lucide-react'
 import {
   db,
-  lastNDays, lastNWeeks, lastNMonths,
+  currentWeekDays, lastNWeeks, lastNMonths,
   todayKey, weekKey, monthKey,
   weekLabel, monthLabel,
   toggleEntry, computeStreak,
   archiveHabit,
   XP_PER_COMPLETION, xpForStreak
 } from '../db'
+import { HabitIcon } from '../icons'
 
-const DAY_LABELS = ['D', 'L', 'M', 'M', 'J', 'V', 'S']
+// Shorthand day labels for daily view (Mon–Sun, 0=Mon in currentWeekDays)
+const DAY_SHORT = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 
-// Full class strings so Tailwind JIT picks them up
-const GRADIENT_MAP = {
+// Full class strings — needed so Tailwind JIT compiles them
+const CARD_GRADIENT = {
+  violet: 'habit-violet',
+  blue:   'habit-blue',
   moss:   'habit-moss',
   clay:   'habit-clay',
   gold:   'habit-gold',
-  blue:   'habit-blue',
-  violet: 'habit-violet',
   pink:   'habit-pink',
   teal:   'habit-teal',
 }
 
-const FREQ_BADGE = {
-  daily:   '📅 Diario',
-  weekly:  '📆 Semanal',
-  monthly: '🗓️ Mensual',
+const FREQ_LABEL = {
+  daily:   'Diario',
+  weekly:  'Semanal',
+  monthly: 'Mensual',
 }
 
 function getPeriodKeys(frequency) {
   if (frequency === 'weekly')  return lastNWeeks(8)
   if (frequency === 'monthly') return lastNMonths(6)
-  return lastNDays(7)
+  // Daily: siempre la semana ISO actual → se "reinicia" cada lunes
+  return currentWeekDays()
 }
 
-function getPeriodLabel(frequency, key) {
+function getPeriodLabel(frequency, key, idx) {
   if (frequency === 'weekly')  return weekLabel(key)
   if (frequency === 'monthly') return monthLabel(key)
-  return DAY_LABELS[new Date(key + 'T00:00:00').getDay()]
+  return DAY_SHORT[idx]          // L M X J V S D
 }
 
 function getCurrentPeriod(frequency) {
@@ -57,14 +61,13 @@ export default function HabitCard({ habit, onXP }) {
   )
 
   const frequency  = habit.frequency  ?? 'daily'
-  const color      = habit.color      ?? 'moss'
-  const gradClass  = GRADIENT_MAP[color] ?? GRADIENT_MAP.moss
+  const color      = habit.color      ?? 'violet'
+  const gradClass  = CARD_GRADIENT[color] ?? CARD_GRADIENT.violet
   const periodKeys = getPeriodKeys(frequency)
   const current    = getCurrentPeriod(frequency)
   const entryMap   = Object.fromEntries((entries ?? []).map(e => [e.date, e]))
   const streak     = computeStreak(entries ?? [], frequency)
 
-  // Completion count for visible periods
   const doneCount = periodKeys.filter(k => entryMap[k]?.done).length
   const pct       = Math.round((doneCount / periodKeys.length) * 100)
 
@@ -73,7 +76,7 @@ export default function HabitCard({ habit, onXP }) {
     await toggleEntry(habit.id, key)
     if (!wasDone) {
       setPopping(key)
-      setTimeout(() => setPopping(null), 400)
+      setTimeout(() => setPopping(null), 350)
       if (key === current) {
         onXP?.(XP_PER_COMPLETION + xpForStreak(streak + 1))
       }
@@ -87,75 +90,73 @@ export default function HabitCard({ habit, onXP }) {
   }
 
   return (
-    <div className={`group relative rounded-3xl p-5 mb-3 animate-fade-in shadow-lg overflow-hidden ${gradClass}`}>
+    <div className={`group relative rounded-2xl p-4 mb-3 animate-fade-in overflow-hidden ${gradClass}`}
+         style={{ boxShadow: '0 6px 24px rgba(0,0,0,0.15)' }}>
 
-      {/* ── Decorative blobs for depth ──────────────────── */}
-      <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
-      <div className="absolute -bottom-8 -left-4 w-24 h-24 rounded-full bg-black/10 pointer-events-none" />
+      {/* Decorative circle (top-right) — same as reference cards */}
+      <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-white/[0.08] pointer-events-none" />
 
-      {/* ── Header ──────────────────────────────────────── */}
-      <div className="relative flex items-start justify-between mb-4">
+      {/* ── Top row: icon + name + streak + archive ──────── */}
+      <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          {/* Emoji bubble */}
-          <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-xl shadow-inner flex-shrink-0">
-            {habit.emoji ?? '✅'}
+          {/* Icon bubble */}
+          <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+            <HabitIcon iconKey={habit.icon ?? 'check'} size={18} className="text-white" />
           </div>
           <div>
-            <h3 className="text-white font-bold text-base leading-tight">
-              {habit.name}
-            </h3>
-            <span className="text-white/70 text-[10px] font-semibold">
-              {FREQ_BADGE[frequency] ?? FREQ_BADGE.daily}
-            </span>
+            <p className="text-white font-bold text-[15px] leading-tight">{habit.name}</p>
+            <p className="text-white/60 text-[11px] font-medium mt-0.5">{FREQ_LABEL[frequency]}</p>
           </div>
         </div>
 
-        {/* Streak badge + archive */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          {/* Streak badge */}
           {streak > 0 && (
-            <div className="flex items-center gap-1 bg-white/20 rounded-full px-2.5 py-1">
-              <span className="text-sm">{streak >= 3 ? '🔥' : '⚡'}</span>
-              <span className="text-white font-black text-xs">{streak}</span>
+            <div className="flex items-center gap-1 bg-white/20 rounded-full px-2 py-0.5">
+              <Flame size={11} className="text-white" fill="white" />
+              <span className="text-white font-bold text-[11px]">{streak}</span>
             </div>
           )}
+          {/* Archive (hover) */}
           <button
             onClick={handleArchive}
             aria-label={`Archivar ${habit.name}`}
-            className="opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-xl bg-black/20 text-white/70 hover:text-white hover:bg-black/30 transition-all text-xs"
+            className="opacity-0 group-hover:opacity-100 w-6 h-6 flex items-center justify-center rounded-lg bg-black/20 text-white/70 hover:text-white hover:bg-black/35 transition-all"
           >
-            ✕
+            <X size={11} />
           </button>
         </div>
       </div>
 
-      {/* ── Period circles ───────────────────────────────── */}
-      <div className="relative flex items-end justify-between gap-1 mb-4">
-        {periodKeys.map((key) => {
+      {/* ── Period dots ──────────────────────────────────── */}
+      <div className="flex items-end gap-1 mb-3">
+        {periodKeys.map((key, idx) => {
           const done      = !!entryMap[key]?.done
           const isCurrent = key === current
           const isPopping = popping === key
 
           return (
-            <div key={key} className="flex flex-col items-center gap-1.5 flex-1">
-              <span className="text-[9px] text-white/60 font-semibold">
-                {getPeriodLabel(frequency, key)}
+            <div key={key} className="flex flex-col items-center gap-1 flex-1">
+              <span className="text-white/50 text-[9px] font-semibold leading-none">
+                {getPeriodLabel(frequency, key, idx)}
               </span>
               <button
                 onClick={() => handleToggle(key)}
-                aria-label={`${habit.name} — ${key}`}
                 aria-pressed={done}
+                aria-label={`${habit.name} ${key}`}
                 className={[
-                  'w-full aspect-square max-w-[34px] rounded-full transition-all duration-200',
+                  'w-full aspect-square max-w-[30px] rounded-full border-[1.5px] transition-all duration-200',
                   'hover:scale-110 active:scale-90',
                   done
-                    ? `bg-white shadow-md ${isPopping ? 'animate-pop' : ''}`
-                    : 'bg-white/25 hover:bg-white/40',
-                  isCurrent && !done ? 'ring-2 ring-white/60 ring-offset-1 ring-offset-transparent' : ''
+                    ? `bg-white border-white ${isPopping ? 'animate-pop' : ''}`
+                    : 'bg-transparent border-white/40 hover:border-white/70',
+                  isCurrent && !done ? 'border-white/90 ring-1 ring-white/30' : ''
                 ].join(' ')}
               >
                 {done && (
-                  <svg className="w-3 h-3 mx-auto" viewBox="0 0 12 10" fill="none">
-                    <path d="M1 5L4.5 8.5L11 1" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg viewBox="0 0 10 8" className="w-2 h-2 mx-auto" fill="none">
+                    <path d="M1 4L3.5 6.5L9 1" stroke="#5B68F5" strokeWidth="1.8"
+                          strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 )}
               </button>
@@ -164,17 +165,12 @@ export default function HabitCard({ habit, onXP }) {
         })}
       </div>
 
-      {/* ── Progress bar ─────────────────────────────────── */}
-      <div className="relative">
-        <div className="h-1.5 rounded-full bg-black/15 overflow-hidden">
-          <div
-            className="h-full bg-white/70 rounded-full transition-all duration-500"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-        <p className="text-white/60 text-[10px] font-semibold mt-1.5 text-right">
-          {doneCount}/{periodKeys.length} · {pct}%
-        </p>
+      {/* ── Progress bar (bottom accent — like reference) ── */}
+      <div className="h-1 rounded-full bg-black/20 overflow-hidden">
+        <div
+          className="h-full bg-white/60 rounded-full transition-all duration-500"
+          style={{ width: `${pct}%` }}
+        />
       </div>
     </div>
   )

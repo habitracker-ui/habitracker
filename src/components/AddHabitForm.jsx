@@ -1,175 +1,162 @@
 import { useState } from 'react'
+import { X } from 'lucide-react'
 import { createHabit } from '../db'
+import { HABIT_ICONS, HabitIcon } from '../icons'
 
 const FREQUENCIES = [
-  { key: 'daily',   label: 'Diario',   icon: '📅' },
-  { key: 'weekly',  label: 'Semanal',  icon: '📆' },
-  { key: 'monthly', label: 'Mensual',  icon: '🗓️' },
+  { key: 'daily',   label: 'Diario'   },
+  { key: 'weekly',  label: 'Semanal'  },
+  { key: 'monthly', label: 'Mensual'  },
 ]
 
-const EMOJIS = ['✅', '💪', '📚', '🏃', '🧘', '💧', '🥗', '😴', '✍️', '🎯', '🎸', '🌿', '🧹', '💊', '🚴', '🧗', '🎨', '🧠', '🛌', '☕']
-
-const COLORS = [
-  { key: 'blue',   label: 'Azul',    preview: 'habit-blue'   },
-  { key: 'violet', label: 'Violeta', preview: 'habit-violet' },
-  { key: 'moss',   label: 'Verde',   preview: 'habit-moss'   },
-  { key: 'clay',   label: 'Naranja', preview: 'habit-clay'   },
-  { key: 'gold',   label: 'Dorado',  preview: 'habit-gold'   },
-  { key: 'pink',   label: 'Rosa',    preview: 'habit-pink'   },
-  { key: 'teal',   label: 'Teal',    preview: 'habit-teal'   },
+// Full class strings for Tailwind JIT
+const COLOR_OPTIONS = [
+  { key: 'violet', cls: 'habit-violet', label: 'Violeta' },
+  { key: 'blue',   cls: 'habit-blue',   label: 'Azul'    },
+  { key: 'moss',   cls: 'habit-moss',   label: 'Verde'   },
+  { key: 'clay',   cls: 'habit-clay',   label: 'Naranja' },
+  { key: 'gold',   cls: 'habit-gold',   label: 'Dorado'  },
+  { key: 'pink',   cls: 'habit-pink',   label: 'Rosa'    },
+  { key: 'teal',   cls: 'habit-teal',   label: 'Teal'    },
 ]
 
 export default function AddHabitForm({ open, onClose }) {
   const [name,      setName]      = useState('')
   const [frequency, setFrequency] = useState('daily')
-  const [emoji,     setEmoji]     = useState('✅')
-  const [color,     setColor]     = useState('blue')
-  const [showEmoji, setShowEmoji] = useState(false)
+  const [icon,      setIcon]      = useState('check')
+  const [color,     setColor]     = useState('violet')
 
   async function handleSubmit(e) {
     e?.preventDefault()
     const trimmed = name.trim()
     if (!trimmed) return
-    await createHabit({ name: trimmed, frequency, emoji, color })
-    // Reset
-    setName('')
-    setFrequency('daily')
-    setEmoji('✅')
-    setColor('blue')
-    setShowEmoji(false)
-    onClose?.()
-  }
-
-  function handleClose() {
-    setShowEmoji(false)
+    await createHabit({ name: trimmed, frequency, icon, color })
+    setName(''); setFrequency('daily'); setIcon('check'); setColor('violet')
     onClose?.()
   }
 
   if (!open) return null
 
+  const previewGrad = COLOR_OPTIONS.find(c => c.key === color)?.cls ?? 'habit-violet'
+
   return (
     <div className="fixed inset-0 z-50 flex items-end">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={handleClose}
-      />
+      <div className="absolute inset-0 bg-navy/30 backdrop-blur-[2px]" onClick={onClose} />
 
-      {/* Bottom sheet */}
-      <div className="relative w-full max-w-lg mx-auto bg-white dark:bg-slate-900 rounded-t-[2rem] shadow-2xl animate-slide-up overflow-hidden">
-        {/* Drag handle */}
-        <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 rounded-full bg-slate-200 dark:bg-slate-700" />
+      {/* Sheet */}
+      <div className="relative w-full max-w-lg mx-auto bg-white dark:bg-dark-surface rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden">
+        {/* Handle */}
+        <div className="flex justify-center pt-3">
+          <div className="w-8 h-1 rounded-full bg-app-border dark:bg-dark-border" />
         </div>
 
-        <div className="px-6 pb-8 pt-4 max-h-[90vh] overflow-y-auto">
-          {/* Title */}
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Nuevo hábito</h2>
+        <div className="px-5 pt-4 pb-8 max-h-[90vh] overflow-y-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-xl font-bold text-navy dark:text-dark-ink">Nuevo hábito</h2>
             <button
-              onClick={handleClose}
-              className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-xl text-subtle hover:text-navy dark:hover:text-dark-ink hover:bg-surface dark:hover:bg-dark-card transition-colors"
             >
-              ✕
+              <X size={16} />
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
 
-            {/* Name + Emoji picker */}
+            {/* Name input */}
             <div>
-              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-2">
-                Nombre del hábito
+              <label className="text-[10px] font-bold text-subtle dark:text-dark-muted uppercase tracking-widest block mb-2">
+                Nombre
               </label>
-              <div className="flex items-center gap-3">
-                {/* Emoji toggle */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setShowEmoji(v => !v)}
-                    className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-2xl flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors active:scale-95"
-                  >
-                    {emoji}
-                  </button>
-
-                  {/* Emoji picker */}
-                  {showEmoji && (
-                    <div className="absolute bottom-14 left-0 z-20 bg-white dark:bg-slate-800 rounded-2xl p-3 shadow-2xl border border-slate-100 dark:border-slate-700 grid grid-cols-5 gap-1 w-52">
-                      {EMOJIS.map(e => (
-                        <button
-                          key={e}
-                          type="button"
-                          onClick={() => { setEmoji(e); setShowEmoji(false) }}
-                          className={`text-xl p-1.5 rounded-xl transition-colors hover:bg-slate-100 dark:hover:bg-slate-700 ${emoji === e ? 'bg-indigo-50 dark:bg-indigo-900/30' : ''}`}
-                        >
-                          {e}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <input
-                  id="input-habit-name"
-                  autoFocus
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  placeholder="Leer 20 minutos..."
-                  className="flex-1 h-12 px-4 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 font-medium outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                />
-              </div>
+              <input
+                id="input-habit-name"
+                autoFocus
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="Ej: Leer 20 minutos..."
+                className="w-full h-11 px-4 rounded-xl bg-surface dark:bg-dark-card border border-app-border dark:border-dark-border text-navy dark:text-dark-ink placeholder:text-subtle/60 dark:placeholder:text-dark-muted text-sm font-medium outline-none focus:border-primary dark:focus:border-primary transition-colors"
+              />
             </div>
 
             {/* Frequency */}
             <div>
-              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-2">
+              <label className="text-[10px] font-bold text-subtle dark:text-dark-muted uppercase tracking-widest block mb-2">
                 Frecuencia
               </label>
               <div className="flex gap-2">
-                {FREQUENCIES.map(({ key, label, icon }) => (
+                {FREQUENCIES.map(({ key, label }) => (
                   <button
                     key={key}
                     type="button"
                     onClick={() => setFrequency(key)}
                     className={[
-                      'flex-1 py-3 rounded-2xl text-sm font-bold transition-all active:scale-95 flex flex-col items-center gap-1',
+                      'flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95',
                       frequency === key
-                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200 dark:shadow-indigo-900/40'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                        ? 'bg-primary text-white shadow-primary'
+                        : 'bg-surface dark:bg-dark-card text-subtle dark:text-dark-muted border border-app-border dark:border-dark-border hover:border-primary'
                     ].join(' ')}
                   >
-                    <span className="text-lg">{icon}</span>
-                    <span>{label}</span>
+                    {label}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Color */}
+            {/* Icon picker */}
             <div>
-              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-2">
-                Color del card
+              <label className="text-[10px] font-bold text-subtle dark:text-dark-muted uppercase tracking-widest block mb-2">
+                Icono
               </label>
-              <div className="flex gap-2 flex-wrap">
-                {COLORS.map(({ key, label, preview }) => (
+              <div className="grid grid-cols-7 gap-1.5">
+                {HABIT_ICONS.map(({ key, label }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setIcon(key)}
+                    title={label}
+                    className={[
+                      'w-full aspect-square rounded-xl flex items-center justify-center transition-all active:scale-90',
+                      icon === key
+                        ? 'bg-primary text-white shadow-primary scale-110'
+                        : 'bg-surface dark:bg-dark-card text-subtle dark:text-dark-muted hover:text-navy dark:hover:text-dark-ink border border-app-border dark:border-dark-border hover:border-primary'
+                    ].join(' ')}
+                  >
+                    <HabitIcon iconKey={key} size={15} />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Color picker */}
+            <div>
+              <label className="text-[10px] font-bold text-subtle dark:text-dark-muted uppercase tracking-widest block mb-2">
+                Color
+              </label>
+              <div className="flex gap-2">
+                {COLOR_OPTIONS.map(({ key, cls }) => (
                   <button
                     key={key}
                     type="button"
                     onClick={() => setColor(key)}
-                    aria-label={label}
                     className={[
-                      'w-10 h-10 rounded-2xl transition-all active:scale-90 hover:scale-110',
-                      preview,
-                      color === key ? 'ring-3 ring-offset-2 ring-offset-white dark:ring-offset-slate-900 ring-indigo-500 scale-110 shadow-lg' : ''
+                      'flex-1 h-8 rounded-xl transition-all active:scale-90 hover:scale-105',
+                      cls,
+                      color === key ? 'ring-2 ring-offset-2 ring-offset-white dark:ring-offset-dark-surface ring-primary scale-105 shadow-md' : ''
                     ].join(' ')}
                   />
                 ))}
               </div>
 
-              {/* Color preview mini card */}
-              <div className={`mt-3 rounded-2xl p-3 ${COLORS.find(c => c.key === color)?.preview ?? 'habit-blue'} flex items-center gap-2`}>
-                <span className="text-xl">{emoji}</span>
-                <span className="text-white font-bold text-sm truncate">{name || 'Vista previa...'}</span>
+              {/* Live preview */}
+              <div className={`mt-3 rounded-xl p-3 ${previewGrad} flex items-center gap-2.5`}>
+                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <HabitIcon iconKey={icon} size={16} className="text-white" />
+                </div>
+                <span className="text-white font-bold text-sm truncate">
+                  {name || 'Vista previa...'}
+                </span>
               </div>
             </div>
 
@@ -177,10 +164,11 @@ export default function AddHabitForm({ open, onClose }) {
             <button
               type="submit"
               disabled={!name.trim()}
-              className="w-full py-4 rounded-2xl bg-indigo-600 text-white font-bold text-base hover:bg-indigo-700 active:scale-98 transition-all shadow-lg shadow-indigo-200 dark:shadow-indigo-900/40 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full py-3.5 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary-600 active:scale-98 transition-all shadow-primary disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Crear hábito
             </button>
+
           </form>
         </div>
       </div>

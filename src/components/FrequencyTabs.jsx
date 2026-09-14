@@ -1,4 +1,4 @@
-const FREQUENCIES = [
+const TABS = [
   { key: 'all',     label: 'Todos'    },
   { key: 'daily',   label: 'Diarios'  },
   { key: 'weekly',  label: 'Semana'   },
@@ -7,17 +7,17 @@ const FREQUENCIES = [
 
 export default function FrequencyTabs({ active, onChange }) {
   return (
-    <div className="flex gap-1 p-1 bg-slate-200/60 dark:bg-slate-800/60 rounded-2xl backdrop-blur-sm">
-      {FREQUENCIES.map(({ key, label }) => (
+    <div className="flex gap-1 p-1 bg-surface dark:bg-dark-card rounded-xl border border-app-border dark:border-dark-border">
+      {TABS.map(({ key, label }) => (
         <button
           key={key}
           id={`tab-${key}`}
           onClick={() => onChange(key)}
           className={[
-            'flex-1 py-2 px-1 rounded-xl text-xs font-bold transition-all duration-200 active:scale-95',
+            'flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all duration-200 active:scale-95',
             active === key
-              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-300/40 dark:shadow-indigo-900/50'
-              : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              ? 'bg-primary text-white shadow-primary'
+              : 'text-subtle dark:text-dark-muted hover:text-navy dark:hover:text-dark-ink'
           ].join(' ')}
         >
           {label}

@@ -15,11 +15,20 @@ db.version(2).stores({
   habits: '++id, name, frequency, emoji, color, createdAt, archived',
   entries: '++id, habitId, date, done, [habitId+date]'
 }).upgrade(tx => {
-  // Migrar hábitos existentes: asignar frequency='daily' por defecto
   return tx.table('habits').toCollection().modify(habit => {
     if (!habit.frequency) habit.frequency = 'daily'
-    if (!habit.emoji) habit.emoji = '✅'
-    if (!habit.color) habit.color = 'moss'
+    if (!habit.emoji)     habit.emoji     = 'check'
+    if (!habit.color)     habit.color     = 'violet'
+  })
+})
+
+// v3: agrega campo `icon` (clave de Lucide) para reemplazar emojis
+db.version(3).stores({
+  habits: '++id, name, frequency, icon, color, createdAt, archived',
+  entries: '++id, habitId, date, done, [habitId+date]'
+}).upgrade(tx => {
+  return tx.table('habits').toCollection().modify(habit => {
+    if (!habit.icon) habit.icon = habit.emoji ?? 'check'
   })
 })
 
@@ -42,6 +51,25 @@ export function lastNDays(n, endDateKey = todayKey()) {
     days.push(addDays(endDateKey, -i))
   }
   return days
+}
+
+/**
+ * Retorna los 7 días de la semana ISO actual (Lun–Dom).
+ * Usar esto para hábitos diarios garantiza que al llegar el lunes
+ * los círculos se reinicien automáticamente.
+ */
+export function currentWeekDays() {
+  const today  = new Date()
+  const dow    = today.getDay()                    // 0 = dom
+  const offset = dow === 0 ? -6 : 1 - dow         // días hasta el lunes
+  const monday = new Date(today)
+  monday.setDate(today.getDate() + offset)
+  monday.setHours(0, 0, 0, 0)
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday)
+    d.setDate(monday.getDate() + i)
+    return d.toISOString().slice(0, 10)
+  })
 }
 
 /** YYYY-Www  (ISO week) */
@@ -98,8 +126,8 @@ export function monthLabel(key) {
 
 // ─── CRUD de hábitos ─────────────────────────────────────────────────────────
 
-export async function createHabit({ name, frequency = 'daily', emoji = '✅', color = 'moss' }) {
-  return db.habits.add({ name, frequency, emoji, color, createdAt: new Date().toISOString(), archived: 0 })
+export async function createHabit({ name, frequency = 'daily', icon = 'check', color = 'violet' }) {
+  return db.habits.add({ name, frequency, icon, color, createdAt: new Date().toISOString(), archived: 0 })
 }
 
 /** Soft delete: marca como archivado pero NO elimina los datos */
