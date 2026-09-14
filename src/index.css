@@ -12,17 +12,28 @@
     background-color: #0F172A;
   }
   body {
-    @apply font-sans antialiased text-navy dark:text-dark-ink;
-    font-feature-settings: "kern" 1, "liga" 1;
+    /* No usar @apply con tokens custom — usar valores hex directamente */
+    @apply font-sans antialiased;
+    color: #1A1D2E;
   }
-  * { box-sizing: border-box; }
-  ::selection { @apply bg-primary/20 text-primary; }
-  :focus-visible { @apply outline-2 outline-primary outline-offset-2; }
+  html.dark body {
+    color: #E2E8F0;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  ::selection {
+    background-color: rgba(91, 104, 245, 0.15);
+    color: #5B68F5;
+  }
+  :focus-visible {
+    outline: 2px solid #5B68F5;
+    outline-offset: 2px;
+  }
 }
 
 @layer utilities {
-  /* ── Habit card gradients ──────────────────────────── */
-  /* Hardcoded full strings so Tailwind JIT includes them */
+  /* ── Habit card gradients (full strings para Tailwind JIT) ── */
   .habit-violet { background: linear-gradient(140deg, #8B7CF6 0%, #6B56ED 100%); }
   .habit-blue   { background: linear-gradient(140deg, #67B2FA 0%, #5B68F5 100%); }
   .habit-moss   { background: linear-gradient(140deg, #4ECDC4 0%, #2BA99B 100%); }
@@ -31,9 +42,9 @@
   .habit-pink   { background: linear-gradient(140deg, #FF8FAB 0%, #E8476A 100%); }
   .habit-teal   { background: linear-gradient(140deg, #5AC8D8 0%, #2A8FA0 100%); }
 
-  /* ── Scrollbar ─────────────────────────────────────── */
+  /* ── Scrollbar ─────────────────────────────────────────────── */
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { @apply bg-primary/20 rounded-sm; }
-  .dark ::-webkit-scrollbar-thumb { @apply bg-dark-border rounded-sm; }
+  ::-webkit-scrollbar-thumb { background: rgba(91, 104, 245, 0.2); border-radius: 2px; }
+  .dark ::-webkit-scrollbar-thumb { background: #2D3F5C; border-radius: 2px; }
 }
