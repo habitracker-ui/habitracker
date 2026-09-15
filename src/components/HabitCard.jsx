@@ -16,38 +16,37 @@ import ConfirmModal from './ConfirmModal'
 // Shorthand day labels for daily view (Mon–Sun, 0=Mon in currentWeekDays)
 const DAY_SHORT = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 
-// Full class strings — needed so Tailwind JIT compiles them
 const CARD_GRADIENT = {
   violet: 'habit-violet',
-  blue:   'habit-blue',
-  moss:   'habit-moss',
-  clay:   'habit-clay',
-  gold:   'habit-gold',
-  pink:   'habit-pink',
-  teal:   'habit-teal',
+  blue: 'habit-blue',
+  moss: 'habit-moss',
+  clay: 'habit-clay',
+  gold: 'habit-gold',
+  pink: 'habit-pink',
+  teal: 'habit-teal',
 }
 
 const FREQ_LABEL = {
-  daily:   'Diario',
-  weekly:  'Semanal',
+  daily: 'Diario',
+  weekly: 'Semanal',
   monthly: 'Mensual',
 }
 
 function getPeriodKeys(frequency) {
-  if (frequency === 'weekly')  return lastNWeeks(8)
+  if (frequency === 'weekly') return lastNWeeks(8)
   if (frequency === 'monthly') return lastNMonths(6)
   // Daily: usa los días de la semana actual, pero normaliza a UTC (same format que todayKey())
   return currentWeekDays().map(d => d.dateKey)
 }
 
 function getPeriodLabel(frequency, key, idx) {
-  if (frequency === 'weekly')  return weekLabel(key)
+  if (frequency === 'weekly') return weekLabel(key)
   if (frequency === 'monthly') return monthLabel(key)
   return DAY_SHORT[idx] ?? ''   // L M X J V S D
 }
 
 function getCurrentPeriod(frequency) {
-  if (frequency === 'weekly')  return weekKey()
+  if (frequency === 'weekly') return weekKey()
   if (frequency === 'monthly') return monthKey()
   return todayKey()
 }
@@ -64,11 +63,11 @@ export default function HabitCard({ habit, onXP }) {
 
   if (!habit) return null
 
-  const frequency  = habit.frequency  ?? 'daily'
-  const color      = habit.color      ?? 'violet'
-  const gradClass  = CARD_GRADIENT[color] ?? CARD_GRADIENT.violet
+  const frequency = habit.frequency ?? 'daily'
+  const color = habit.color ?? 'violet'
+  const gradClass = CARD_GRADIENT[color] ?? CARD_GRADIENT.violet
   const periodKeys = getPeriodKeys(frequency)
-  const current    = getCurrentPeriod(frequency)
+  const current = getCurrentPeriod(frequency)
 
   // Construcción segura del mapa para máxima compatibilidad móvil
   const entryMap = {}
@@ -105,7 +104,7 @@ export default function HabitCard({ habit, onXP }) {
   return (
     <>
       <div className={`group relative rounded-2xl p-4 animate-fade-in overflow-hidden isolate ${gradClass}`}
-           style={{ boxShadow: '0 6px 24px rgba(0,0,0,0.15)' }}>
+        style={{ boxShadow: '0 6px 24px rgba(0,0,0,0.15)' }}>
 
         {/* Decorative circle (top-right) — same as reference cards */}
         <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-white/[0.08] pointer-events-none" />
@@ -145,7 +144,7 @@ export default function HabitCard({ habit, onXP }) {
         {/* ── Period dots ──────────────────────────────────── */}
         <div className="flex items-end gap-1 mb-3">
           {periodKeys.map((key, idx) => {
-            const done      = !!entryMap[key]?.done
+            const done = !!entryMap[key]?.done
             const isCurrent = key === current
             const isPopping = popping === key
 
@@ -174,7 +173,7 @@ export default function HabitCard({ habit, onXP }) {
                   {done && (
                     <svg viewBox="0 0 10 8" className="w-2 h-2 mx-auto" fill="none">
                       <path d="M1 4L3.5 6.5L9 1" stroke="#5B68F5" strokeWidth="1.8"
-                            strokeLinecap="round" strokeLinejoin="round"/>
+                        strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   )}
                 </button>
