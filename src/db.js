@@ -35,7 +35,10 @@ db.version(3).stores({
 // ─── Utilidades de clave de fecha ───────────────────────────────────────────
 
 export function todayKey(date = new Date()) {
-  return date.toISOString().slice(0, 10) // YYYY-MM-DD
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
 }
 
 export function addDays(dateKey, days) {
@@ -68,7 +71,7 @@ export function currentWeekDays() {
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday)
     d.setDate(monday.getDate() + i)
-    return d.toISOString().slice(0, 10)
+    return todayKey(d)
   })
 }
 
@@ -84,7 +87,9 @@ export function weekKey(date = new Date()) {
 
 /** YYYY-MM */
 export function monthKey(date = new Date()) {
-  return date.toISOString().slice(0, 7)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  return `${y}-${m}`
 }
 
 /** Últimas `n` semanas en formato YYYY-Www */

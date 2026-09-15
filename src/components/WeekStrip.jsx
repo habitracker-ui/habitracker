@@ -13,7 +13,7 @@ function getCurrentWeekDays() {
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday)
     d.setDate(monday.getDate() + i)
-    return { dateKey: d.toISOString().slice(0, 10), label: DAY_LABELS[i], num: d.getDate() }
+    return { dateKey: todayKey(d), label: DAY_LABELS[i], num: d.getDate() }
   })
 }
 
